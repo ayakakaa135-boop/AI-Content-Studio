@@ -15,8 +15,15 @@ An integrated, locally-hosted platform designed for content creators to generate
 
 ### 2. Audio Transcription (Whisper AI)
 ![Transcription Screen](screenshots/transcribe.jbeg)
-### 🤖 Chatbot Demo
+### 3.🤖 Chatbot Demo
 ![Chatbot in Action](screenshots/chatbot-demo.mp4)
+### 4.🏠 Main Dashboard
+> *The central hub for all AI tools with a clean and focused design.*
+![Main Dashboard](screenshots/dashboard.jpeg)
+
+### ⚡5.Smart Article Summarization
+> *Watch the AI summarize long articles word-by-word with beautiful Markdown formatting.*
+![Summarization Screen](screenshots/summarize.png)
 
 ## ✨ Key Features
 
