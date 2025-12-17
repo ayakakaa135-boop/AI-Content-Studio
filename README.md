@@ -11,12 +11,12 @@ An integrated, locally-hosted platform designed for content creators to generate
 ## 📸 Project Screenshots
 
 ### 1. Smart Summarization (with Live Streaming)
-![Summarization Screen](screenshots/summary.gif)
+![Summarization Screen](screenshots/summary.mp4)
 
 ### 2. Audio Transcription (Whisper AI)
-![Transcription Screen](screenshots/transcribe.gif)
+![Transcription Screen](screenshots/transcribe.png)
 ### 🤖 Chatbot Demo
-![Chatbot in Action](screenshots/chatbot-demo.gif)
+![Chatbot in Action](screenshots/chatbot-demo.mp4)
 
 ## ✨ Key Features
 
