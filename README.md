@@ -23,7 +23,7 @@ An integrated, locally-hosted platform designed for content creators to generate
 
 ### ⚡5.Smart Article Summarization
 > *Watch the AI summarize long articles word-by-word with beautiful Markdown formatting.*
-![Summarization Screen](screenshots/summarize.png)
+![Summarization Screen](screenshots/summarize.jpeg)
 
 ## ✨ Key Features
 
