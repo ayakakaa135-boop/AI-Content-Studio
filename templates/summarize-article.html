@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}لخص مقالا{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/streaming-effects.css') }}">
+
+<div class="container mt-5">
+  <div class="form-group">
+      <label for="toSummarize" class="mb-2">المقال المراد تلخيصه</label>
+      <textarea class="form-control mb-2" name="toSummarize" id="toSummarize" rows="5" placeholder="أدخل النص هنا..."></textarea>
+  </div>
+  <button class="btn btn-primary w-100 mb-4" onclick="summarizeArticle()">ابدأ التلخيص الذكي</button>
+
+  <label class="mb-2">الملخص المنسق:</label>
+  <div id="maqal" class="mb-3">
+    </div>
+  <button class="btn btn-outline-secondary mb-5" onclick="copyContent('maqal')">نسخ الملخص</button>
+</div>
+
+<div class="container mb-3">
+  <div class="form-group">
+    <label for="title" class="mb-2">العنوان المقترح</label>
+    <input type="text" class="form-control mb-2" id="title" placeholder="العنوان سيظهر هنا">
+
+    <label for="keywords" class="mb-2 mt-3">الكلمات المفتاحية</label>
+    <textarea class="form-control mb-2" id="keywords" rows="2" placeholder="الكلمات المفتاحية..."></textarea>
+  </div>
+</div>
+
+<div class="container mb-5">
+  <label class="mb-2 d-block">صناعة صورة معبرة للمقال</label>
+  <button class="btn btn-info text-white" onclick="generateImage()" id="drawButton">توليد صورة بالذكاء الاصطناعي</button>
+  <div class="text-center mt-3">
+    <img id="outputImage" class="img-fluid d-none">
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="{{ url_for('static', filename='js/summarize.js') }}"></script>
+
+<script>
+// دالة لنسخ المحتوى من الـ div
+function copyContent(id) {
+    const el = document.getElementById(id);
+    const range = document.createRange();
+    range.selectNode(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    alert('تم نسخ النص المنسق!');
+}
+</script>
+{% endblock %}

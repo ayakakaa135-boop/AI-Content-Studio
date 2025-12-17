@@ -1,0 +1,59 @@
+/* تقليل تباعد الصفحة العام */
+body {
+    background-color: #f8fafc;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1e293b;
+}
+
+/* تصغير عرض الحاوية الرئيسية */
+.container {
+    max-width: 750px !important; /* تقليل العرض من 900 إلى 750 */
+    margin: 20px auto;
+    padding: 10px;
+}
+
+/* تصغير صندوق التلخيص المنسق */
+#maqal {
+    min-height: 250px; /* تقليل الحد الأدنى للارتفاع */
+    max-height: 450px;
+    background: #ffffff;
+    padding: 25px !important; /* تقليل الحشوة الداخلية */
+    border-radius: 12px;
+    line-height: 1.6; /* تقليل تباعد الأسطر قليلاً */
+    font-size: 15px; /* تصغير الخط قليلاً */
+    color: #334155;
+    direction: rtl;
+    overflow-y: auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+}
+
+/* ضبط أحجام العناوين داخل الصندوق */
+#maqal h1 { font-size: 1.5rem; margin-top: 10px; }
+#maqal h2 { font-size: 1.2rem; margin-top: 15px; border-right-width: 3px; }
+
+/* تصغير حقول الإدخال (العنوان والكلمات المفتاحية) */
+.form-control {
+    border-radius: 8px !important;
+    padding: 8px 12px !important; /* تصغير الحشوة */
+    font-size: 14px !important;
+    margin-bottom: 10px !important;
+}
+
+/* تصغير الأزرار */
+.btn {
+    padding: 8px 18px !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+}
+
+/* تصغير أبعاد الصورة المعروضة */
+#outputImage {
+    max-width: 400px !important; /* تقليل عرض الصورة */
+    border-radius: 8px;
+    margin: 15px auto;
+}
+
+/* تحسين شكل الفواصل والهوامش بين العناصر */
+.mt-5 { margin-top: 2rem !important; }
+.mb-5 { margin-bottom: 2rem !important; }

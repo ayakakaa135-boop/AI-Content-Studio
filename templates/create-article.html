@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}انشئ مقالا احترافياً{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+    /* تنسيق عرض المقال المنسق */
+    #maqal {
+        min-height: 400px;
+        height: auto;
+        background: #fff;
+        padding: 25px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        line-height: 1.8;
+        direction: rtl;
+        text-align: right;
+    }
+    #maqal h1, #maqal h2, #maqal h3 { color: #0d6efd; margin-top: 20px; }
+    #maqal ul, #maqal ol { margin-right: 30px; }
+    #maqal blockquote { border-right: 5px solid #0d6efd; padding-right: 15px; color: #555; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+  <div class="form-group">
+      <label for="articleTitle" class="mb-2 fw-bold">عنوان المقال</label>
+      <input type="text" class="form-control mb-3 w-75" id="articleTitle" placeholder="مثلاً: فوائد الذكاء الاصطناعي في الطب">
+  </div>
+  <button class="btn btn-primary px-4" onclick="writeArticle()">
+    <span id="write-btn-text">اكتب المقال المنسق</span>
+    <span id="write-btn-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
+  </button>
+</div>
+
+<div class="container mt-3" id="progress-container" style="display: none;">
+  <div class="alert alert-info d-flex align-items-center" role="alert">
+    <div class="spinner-border spinner-border-sm me-3" role="status"></div>
+    <div>جاري إنشاء محتوى احترافي وتنسيقه... يرجى الانتظار</div>
+  </div>
+</div>
+
+<div class="container mb-3 mt-5">
+  <div class="form-group">
+    <label class="mb-2 fw-bold">المقال المولد (بتنسيق احترافي):</label>
+    <div id="maqal" class="form-control mb-2"></div>
+    <div id="word-count" class="text-muted small">0 كلمة</div>
+  </div>
+</div>
+
+<div class="container mb-3 mt-4">
+    <div class="row align-items-end">
+      <div class="col-md-8">
+        <label for="keywords" class="mb-2 fw-bold">الكلمات المفتاحية (SEO):</label>
+        <textarea class="form-control" id="keywords" rows="2" readonly></textarea>
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-outline-secondary w-100" onclick="clipboard('keywords')">نسخ الكلمات</button>
+      </div>
+    </div>
+</div>
+
+<div class="container mb-5 mt-5">
+    <div class="card p-4 shadow-sm">
+        <h5 class="mb-3">توليد صورة واقعية للمقال</h5>
+        <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-success" onclick="generateImage()" id="drawButton">ارسم صورة احترافية</button>
+            <button class="btn btn-primary" onclick="downloadImage()" id="downloadButton">تنزيل الصورة</button>
+        </div>
+        <div class="text-center">
+            <img id="outputImage" style="max-width: 100%; border-radius: 10px; display: none;" class="mt-2 shadow">
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/create-article.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+{% endblock %}
