@@ -6,14 +6,105 @@ from io import BytesIO
 from dotenv import load_dotenv
 import whisper
 
+
+from langchain_ollama import OllamaEmbeddings, OllamaLLM
+from langchain_community.vectorstores import Chroma
+from langchain_community.document_loaders import TextLoader, DirectoryLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+
 load_dotenv()
 
+# =============================
 # إعدادات Ollama
+# =============================
 OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "gpt-oss:120b-cloud"
+OLLAMA_MODEL = "qwen2.5:3b"
 API_KEY = os.getenv("STABILITY_API_KEY")
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(BASE_DIR, "data")
+CHROMA_PATH = os.path.join(BASE_DIR, "chroma_db")
 
+# =======
+# =============================
+# RAG - إنشاء Vector DB
+# =============================
+def initialize_rag_system():
+    import os
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(base_dir, "data")
+    chroma_path = os.path.join(base_dir, "chroma_db")
+
+    if not os.path.exists(data_path) or not os.listdir(data_path):
+        print("⚠️ مجلد data فارغ.")
+        return None
+
+    try:
+        # التعديل هنا: نستخدم TextLoader ونبحث عن ملفات txt
+        # استخدمنا encoding='utf-8' لضمان قراءة اللغة العربية بشكل صحيح
+        loader = DirectoryLoader(data_path, glob="./*.txt", loader_cls=TextLoader, loader_kwargs={'encoding': 'utf-8'})
+        documents = loader.load()
+
+        if not documents:
+            print("❌ لم يتم العثور على أي نصوص في ملفات الـ txt.")
+            return None
+
+        # تقسيم النصوص (القطع الصغيرة تساعد الموديل على التركيز)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        splits = text_splitter.split_documents(documents)
+
+        embeddings = OllamaEmbeddings(model="nomic-embed-text")
+
+        vectorstore = Chroma.from_documents(
+            documents=splits,
+            embedding=embeddings,
+            persist_directory=chroma_path
+        )
+        print("✅ تم إنشاء قاعدة بيانات المتجهات من ملفات TXT بنجاح!")
+        return vectorstore
+    except Exception as e:
+        print(f"❌ خطأ أثناء معالجة ملفات النص: {e}")
+        return None
+
+
+def get_rag_chain(vectorstore):
+    """
+    ربط قاعدة بيانات المتجهات بموديل Ollama للإجابة على الأسئلة
+    """
+    if vectorstore is None:
+        return None
+
+    # إعداد الموديل (Qwen)
+    llm = OllamaLLM(model=OLLAMA_MODEL)
+
+    # تصميم القالب (Prompt) لضمان الإجابة من المستندات فقط
+    template = """استخدم المعلومات التالية فقط للإجابة على سؤال المستخدم. 
+    إذا لم تجد الإجابة في المعلومات، قل أنك لا تعرف، ولا تحاول اختلاق إجابة.
+
+    المعلومات المستخرجة من ملفاتك:
+    {context}
+
+    سؤال المستخدم: {question}
+
+    الإجابة باللغة العربية:"""
+
+    prompt = ChatPromptTemplate.from_template(template)
+
+ 
+    chain = (
+            {"context": vectorstore.as_retriever(search_kwargs={"k": 3}), "question": RunnablePassthrough()}
+            | prompt
+            | llm
+            | StrOutputParser()
+    )
+    return chain
+
+# =============================
+# Ollama Call
+# =============================
 def call_ollama(prompt, model=OLLAMA_MODEL):
     """
     استدعاء Ollama API (بدون streaming)
@@ -58,7 +149,7 @@ def call_ollama_stream(prompt, model=OLLAMA_MODEL):
                     if 'response' in json_response:
                         yield json_response['response']
 
-                    # إذا انتهى التوليد
+                   
                     if json_response.get('done', False):
                         break
                 except json.JSONDecodeError:
@@ -196,14 +287,9 @@ def chat_stream(message):
 
     return call_ollama_stream(prompt)
 
-
 # ==========================================
 #  دوال الصور والصوت
 # ==========================================
-
-
-
-
 model_whisper = whisper.load_model("base") #
 
 def transcribe_audio(audio_file_path):
