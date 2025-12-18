@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, jsonify, Response, stream_with_context
-
+import os
+import json
+from werkzeug.utils import secure_filename
 from utils import (
     summarize_article,
     summarize_article_stream,
@@ -11,11 +13,10 @@ from utils import (
     extend_article_stream,
     generate_image_prompt,
     transcribe_audio,
-    chat_stream
+    chat_stream,
+    initialize_rag_system,
+    get_rag_chain
 )
-import os
-import json
-from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -78,7 +79,7 @@ def api_write_article_stream():
         return jsonify({'error': str(e)}), 500
 
 
-
+#---------------------------------------------------------------------
 @app.route('/api/extend-article-stream', methods=['POST'])
 def api_extend_article_stream():
     try:
@@ -99,7 +100,7 @@ def api_extend_article_stream():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
+#------------------------------------------------------------------------------------------
 @app.route('/api/summarize-stream', methods=['POST'])
 def api_summarize_stream():
     try:
@@ -117,10 +118,10 @@ def api_summarize_stream():
                 for chunk in summarize_article_stream(article_text):
                     if chunk:
                         full_summary += chunk
-                        # إرسال البيانات بتنسيق JSON داخل SSE
+               
                         yield f"data: {json.dumps({'chunk': chunk})}\n\n"
 
-                # بعد انتهاء التلخيص، نرسل العنوان والكلمات المفتاحية
+        
                 g_title = generate_title(full_summary)
                 g_keywords = generate_keywords(full_summary)
                 yield f"data: {json.dumps({'done': True, 'title': g_title, 'keywords': g_keywords})}\n\n"
@@ -131,10 +132,14 @@ def api_summarize_stream():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 # ============== ا API الشات بوت مع Streaming ==============
+vectorstore = initialize_rag_system()
+qa_chain = get_rag_chain(vectorstore) if vectorstore else None
+
+
 @app.route('/api/chatbot-stream', methods=['POST'])
 def api_chatbot():
+    global qa_chain
     try:
-        from utils import call_ollama_stream
         data = request.get_json()
         message = data.get('message', '')
 
@@ -143,32 +148,37 @@ def api_chatbot():
 
         def generate():
             try:
-                for chunk in call_ollama_stream(message): # استخدام الـ stream
-                    if chunk:
-                        yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+                if qa_chain:
+               
+                    for chunk in qa_chain.stream(message):
+                        if chunk:
+                            yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+                else:
+                    yield f"data: {json.dumps({'chunk': '⚠️ قاعدة البيانات غير جاهزة، يرجى إضافة ملفات في مجلد data.'})}\n\n"
+
+                yield f"data: {json.dumps({'done': True})}\n\n"
             except Exception as e:
                 yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
         return Response(stream_with_context(generate()), mimetype='text/event-stream')
-
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+#---------------------------------------------------------------------------------------------------
 
 @app.route('/api/generate-full-image', methods=['POST'])
 def api_generate_full_image():
     try:
-        from utils import generate_image_prompt, generate_image_with_sd3  # استدعاء الدالة الجديدة
+        from utils import generate_image_prompt, generate_image_with_sd3  
         data = request.get_json()
         article_text = data.get('article', '')
 
         if not article_text:
             return jsonify({'error': 'نص المقال فارغ'}), 400
 
-        # 1. توليد الوصف بالإنجليزية من المقال
+
         image_prompt = generate_image_prompt(article_text)
 
-        # 2. توليد الصورة الفعلية باستخدام SD3
+      
         image_data = generate_image_with_sd3(image_prompt)
 
         if image_data:
@@ -184,6 +194,8 @@ def api_generate_full_image():
         return jsonify({'error': str(e)}), 500
 
 
+
+#------------------------------------------------------------------------------------------
 @app.route('/api/transcribe', methods=['POST'])
 def api_transcribe():
     try:
@@ -199,13 +211,12 @@ def api_transcribe():
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)  #
             file.save(filepath)  #
 
-            # استدعاء الدالة التي عدلناها في utils.py
             transcription = transcribe_audio(filepath)  #
 
-            # توليد كلمات مفتاحية للنص المفرغ باستخدام Ollama
+      
             keywords = generate_keywords(transcription) if transcription else ""  #
 
-            # حذف الملف بعد الانتهاء لتوفير المساحة
+          
             if os.path.exists(filepath):
                 os.remove(filepath)  #
 
