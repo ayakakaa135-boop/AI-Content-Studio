@@ -5,8 +5,6 @@ import base64
 from io import BytesIO
 from dotenv import load_dotenv
 import whisper
-
-
 from langchain_ollama import OllamaEmbeddings, OllamaLLM
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import TextLoader, DirectoryLoader
@@ -43,8 +41,7 @@ def initialize_rag_system():
         return None
 
     try:
-        # التعديل هنا: نستخدم TextLoader ونبحث عن ملفات txt
-        # استخدمنا encoding='utf-8' لضمان قراءة اللغة العربية بشكل صحيح
+
         loader = DirectoryLoader(data_path, glob="./*.txt", loader_cls=TextLoader, loader_kwargs={'encoding': 'utf-8'})
         documents = loader.load()
 
@@ -52,7 +49,7 @@ def initialize_rag_system():
             print("❌ لم يتم العثور على أي نصوص في ملفات الـ txt.")
             return None
 
-        # تقسيم النصوص (القطع الصغيرة تساعد الموديل على التركيز)
+        
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         splits = text_splitter.split_documents(documents)
 
@@ -71,9 +68,7 @@ def initialize_rag_system():
 
 
 def get_rag_chain(vectorstore):
-    """
-    ربط قاعدة بيانات المتجهات بموديل Ollama للإجابة على الأسئلة
-    """
+   
     if vectorstore is None:
         return None
 
@@ -351,3 +346,4 @@ def generate_image_with_sd3(prompt_text):
     except Exception as e:
         print(f"Exception during image generation: {e}")
         return None
+
